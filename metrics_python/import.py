@@ -10,14 +10,18 @@ from sqlalchemy import NCHAR, create_engine
 from metrics_python.functions import set_psql_auth
 from metrics_python.functions import return_psql_auth
 
+# The following three lines set up the connection to the database
 uid, pwrd = return_psql_auth()
 
 psql_connect_string = f'''postgresql+psycopg2://{uid}:{pwrd}@localhost/airlineontimemetrics'''
 
 psql_engine =create_engine(psql_connect_string)
 
+# Defines the path for the location of the downloaded files
+
 path = '/home/jestripe/GradSchool/MIS_581_Winter_2021/RawData'
 
+# Unzip the files and leave the .csv files accessable for manipulation
 # code from https://www.codegrepper.com/code-examples/python/python+unzip+all+files+in+directory
 def unzipFiles(path):
     files = os.listdir(path)
@@ -30,6 +34,7 @@ def unzipFiles(path):
         zip_file.close()
 
 
+# Defines the data types for the data to be imported into the database as
 flight_data_dict = {'Year': sqla.types.INTEGER,
                     'Quarter': sqla.types.INTEGER,
                     'Month': sqla.types.INTEGER,
@@ -70,6 +75,7 @@ flight_data_dict = {'Year': sqla.types.INTEGER,
                     'SecurityDelay': sqla.types.INTEGER,
                     'LateAircraftDelay': sqla.types.INTEGER}
 
+# Change the times from an integer into a time data type this took way to long to figure out
 def int_to_time(tmp, x):
     tmp[x] = pd.to_numeric(tmp[x], errors = 'coerce')
     tmp[x] = tmp[x].astype('int64')
@@ -91,7 +97,7 @@ def int_to_time(tmp, x):
     tmp['txtTime'] = tmp['hr'] + ':' + tmp['mi'] + ':00'
     tmp[x] = pd.to_datetime(tmp['txtTime'], format = '%H:%M:%S').dt.time
     
-
+# Reads in the csv files filters them and writes it to the database, wash, rinse, repeat...
 def read_metrics_csv(path):
     files = os.listdir(path)
     for file in files:
@@ -115,4 +121,5 @@ def read_metrics_csv(path):
             tmp.to_sql(name = 'flight_data', schema = 'analysis', con = psql_engine, if_exists = 'append', dtype = flight_data_dict, index = False)
             # return tmp
 
+# Executes the whole process for database entry
 airline_data_df = read_metrics_csv(path)

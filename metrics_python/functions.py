@@ -1,5 +1,6 @@
-import os
 import pickle
+
+# Contains some functions to help access the database where the data is stored.
 
 auth_path = rf'\home\jestripe\auth.pkl'
 
